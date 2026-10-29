@@ -1,0 +1,12 @@
+{
+  "name": "ls2-analysis-tables",
+  "version": "0.1.0",
+  "private": true,
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "start": "node test/fake_server.js",
+    "dev": "node test/fake_server.js",
+    "test": "node test/roundtrip.js"
+  },
+  "dependencies": { "mssql": "^11.0.1" }
+}

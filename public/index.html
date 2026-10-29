@@ -1,0 +1,1136 @@
+<title>LS 2.0 Analysis Tables</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: page tabs, one filter panel, a toolbar, then one wide table in the same shape as the analysis sheet. */
+:root {
+  --bg: #f4f6f5; --surface: #ffffff; --fg: #16211f; --muted: #566562; --line: #d9e1df;
+  --head: #eaf0ee; --head2: #dfe8e5; --total: #dcebe7; --accent: #0f6b63; --accent-ink: #ffffff; --hover: #f0f5f3;
+  --scrim: rgba(10, 20, 18, 0.45);
+  --font: "Public Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f1514; --surface: #151d1c; --fg: #e5ecea; --muted: #97a7a3; --line: #283533;
+    --head: #1b2625; --head2: #223130; --total: #1d3330; --accent: #52b8aa; --accent-ink: #082220; --hover: #1a2524;
+    --scrim: rgba(0, 0, 0, 0.6); color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0f1514; --surface: #151d1c; --fg: #e5ecea; --muted: #97a7a3; --line: #283533;
+  --head: #1b2625; --head2: #223130; --total: #1d3330; --accent: #52b8aa; --accent-ink: #082220; --hover: #1a2524;
+  --scrim: rgba(0, 0, 0, 0.6); color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--fg); font-family: var(--font); font-size: 14px; line-height: 1.45;
+  padding-block: 20px 56px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.shell { max-width: 1760px; margin: 0 auto; display: grid; grid-template-columns: 264px minmax(0, 1fr); gap: 20px; align-items: start; }
+.main { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.main > header { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 6px 16px; }
+.side { position: sticky; top: 16px; max-height: calc(100vh - 32px); overflow: auto; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 14px 10px 12px; display: flex; flex-direction: column; gap: 12px; }
+.brand { padding: 0 6px; }
+.brand h1 { font-size: 17px; font-weight: 700; margin: 0; letter-spacing: -0.01em; }
+.sub { color: var(--muted); font-size: 12.5px; margin-top: 2px; }
+h1 { font-size: 22px; font-weight: 700; margin: 0; letter-spacing: -0.01em; text-wrap: balance; }
+.tag { font-size: 11px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent); border: 1px solid var(--accent); border-radius: 4px; padding: 2px 6px; }
+#sideBtn { display: none; }
+nav { display: flex; flex-direction: column; gap: 2px; }
+nav .sec { margin: 10px 6px 4px; font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+nav .sec:first-child { margin-top: 2px; }
+nav a { display: block; text-decoration: none; color: var(--fg); border-radius: 6px; padding: 7px 10px; font-size: 13.5px; line-height: 1.3; border-left: 3px solid transparent; }
+nav a:hover { background: var(--hover); }
+nav a[aria-current="page"] { background: var(--total); border-left-color: var(--accent); font-weight: 600; }
+details.off { color: var(--muted); font-size: 12.5px; border-top: 1px solid var(--line); padding: 10px 6px 0; }
+details.off summary { cursor: pointer; }
+details.off ul { margin: 8px 0 0; padding-left: 16px; display: grid; gap: 6px; }
+@media (max-width: 960px) {
+  .shell { grid-template-columns: minmax(0, 1fr); gap: 12px; }
+  .side { position: static; max-height: none; padding: 10px; }
+  #sideBtn { display: inline-flex; justify-content: space-between; align-items: center; width: 100%; }
+  .side .menuwrap { display: none; }
+  .side.open .menuwrap { display: flex; flex-direction: column; gap: 12px; }
+}
+@media (min-width: 961px) { .side .menuwrap { display: flex; flex-direction: column; gap: 12px; } }
+.pagehead h2 { margin: 0; font-size: 18px; font-weight: 700; }
+.pagehead .meta { color: var(--muted); font-size: 13px; }
+
+.hr { display: flex; align-items: center; gap: 10px; }
+.aib { display: inline-flex; align-items: center; gap: 6px; }
+.aib .ic { margin: 0; }
+.aip { position: fixed; top: 0; right: 0; bottom: 0; width: min(420px, 100vw); background: var(--surface); border-left: 1px solid var(--line); box-shadow: -8px 0 28px rgba(0, 0, 0, 0.16); z-index: 40; display: flex; flex-direction: column; }
+.aip[hidden] { display: none; }
+.aip .ah { display: flex; align-items: center; gap: 8px; padding: 12px 14px; border-bottom: 1px solid var(--line); }
+.aip .ah h3 { margin: 0; font-size: 15px; flex: 1; }
+.aip .ah .btn { padding: 5px 8px; font-size: 12.5px; }
+.aip .ah .btn .ic { margin: 0; }
+.aip .as { padding: 8px 14px 0; font-size: 12px; color: var(--muted); }
+.aip .am { flex: 1; overflow-y: auto; padding: 12px 14px; display: flex; flex-direction: column; gap: 10px; }
+.aip .msg { max-width: 92%; padding: 9px 12px; border-radius: 10px; font-size: 13.5px; line-height: 1.5; overflow-wrap: anywhere; }
+.aip .msg.u { align-self: flex-end; background: var(--accent); color: var(--accent-ink); }
+.aip .msg.a { align-self: flex-start; background: var(--head); }
+.aip .msg p { margin: 0 0 6px; } .aip .msg p:last-child { margin: 0; }
+.aip .msg ul { margin: 4px 0 6px; padding-left: 18px; }
+.aip .msg .st { color: var(--muted); font-size: 12.5px; }
+.aip .chips { display: flex; flex-wrap: wrap; gap: 6px; padding: 0 14px 8px; }
+.aip .chips button { font: inherit; font-size: 12.5px; background: var(--surface); color: var(--fg); border: 1px solid var(--line); border-radius: 999px; padding: 4px 10px; cursor: pointer; text-align: left; }
+.aip .chips button:hover { background: var(--hover); }
+.aip form { display: flex; gap: 8px; padding: 10px 14px 14px; border-top: 1px solid var(--line); }
+.aip textarea { flex: 1; font: inherit; font-size: 14px; resize: none; height: 40px; max-height: 120px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--surface); color: var(--fg); }
+.aip form .btn { align-self: flex-end; height: 40px; }
+.pagehead { position: relative; }
+.ttl { display: flex; align-items: center; gap: 8px; }
+.infob { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; padding: 0; border-radius: 50%; border: 1px solid var(--line); background: var(--surface); color: var(--muted); cursor: pointer; flex: 0 0 auto; }
+.infob:hover, .infob[aria-expanded="true"] { color: var(--accent); border-color: var(--accent); }
+.infob .ic { margin: 0; }
+.infop { position: absolute; left: 0; top: calc(100% + 6px); width: min(560px, 86vw); background: var(--surface); border: 1px solid var(--line); border-radius: 8px; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18); padding: 12px 14px; z-index: 30; }
+.infop[hidden] { display: none; }
+.infop .note { margin-top: 8px; }
+.note { background: var(--head); border-radius: 6px; padding: 6px 10px; font-size: 13px; color: var(--muted); margin-top: 6px; max-width: 110ch; }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; }
+label, .lbl { display: flex; flex-direction: column; gap: 4px; font-size: 11px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; color: var(--muted); min-width: 0; }
+select, input[type="search"] {
+  font: inherit; font-size: 14px; text-transform: none; letter-spacing: 0; font-weight: 400; color: var(--fg);
+  background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 7px 8px; min-width: 0;
+}
+select:focus-visible, button:focus-visible, input:focus-visible, summary:focus-visible, nav a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+.seg button { font: inherit; font-size: 13px; background: var(--surface); color: var(--fg); border: 0; padding: 7px 12px; cursor: pointer; }
+.seg button + button { border-left: 1px solid var(--line); }
+.seg button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); font-weight: 600; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { font: inherit; font-size: 13px; background: var(--surface); color: var(--fg); border: 1px solid var(--line); border-radius: 999px; padding: 4px 11px; cursor: pointer; }
+.chip[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); font-weight: 600; }
+.btn { font: inherit; font-size: 13px; font-weight: 600; background: var(--surface); color: var(--fg); border: 1px solid var(--line); border-radius: 6px; padding: 7px 12px; cursor: pointer; white-space: nowrap; }
+.btn:hover { background: var(--hover); }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.btn.primary:hover { filter: brightness(1.08); }
+.toolbar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.toolbar .grow { flex: 1 1 200px; color: var(--muted); font-size: 13px; min-width: 0; }
+.toolbar select { width: 190px; }
+.menu { position: relative; }
+.menu > summary { list-style: none; cursor: pointer; }
+.menu > summary::-webkit-details-marker { display: none; }
+.menu .pop { position: absolute; right: 0; top: calc(100% + 4px); background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 6px; display: grid; gap: 2px; min-width: 210px; z-index: 15; box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15); }
+.menu .pop button { font: inherit; font-size: 13px; text-align: left; background: none; border: 0; color: var(--fg); padding: 8px 10px; border-radius: 6px; cursor: pointer; }
+.menu .pop button:hover { background: var(--hover); }
+
+/* the analysis table */
+.grid { overflow: auto; max-height: 74vh; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); }
+table { border-collapse: separate; border-spacing: 0; font-variant-numeric: tabular-nums; }
+th, td { padding: 0 9px; height: 30px; text-align: right; white-space: nowrap; border-bottom: 1px solid var(--line); border-right: 1px solid var(--line); }
+thead th { position: sticky; background: var(--head); font-size: 12px; font-weight: 600; z-index: 3; text-align: center; }
+thead tr.r1 th { top: 0; background: var(--head2); }
+thead tr.r2 th { top: 30px; }
+thead tr.r3 th { top: 60px; font-weight: 500; color: var(--muted); }
+th.rs { top: 0; height: 60px; background: var(--head2); }
+th.gh { max-width: 360px; }
+th.c1, td.c1 { position: sticky; left: 0; width: 250px; min-width: 250px; max-width: 250px; text-align: left; z-index: 2; background: var(--surface); overflow: hidden; text-overflow: ellipsis; }
+th.c2, td.c2 { position: sticky; left: 250px; width: 76px; min-width: 76px; z-index: 2; background: var(--surface); border-right: 2px solid var(--line); }
+thead th.c1, thead th.c2 { z-index: 5; background: var(--head2); top: 0; height: 90px; vertical-align: bottom; text-align: left; padding-bottom: 8px; }
+thead th.c2 { text-align: right; }
+tr.total td { background: var(--total); font-weight: 700; }
+tr.sect td { background: var(--head); text-align: left; font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); height: 24px; }
+tr.sect td.c1, tr.sect td.c2 { background: var(--head); }
+tr.data:hover td { background: var(--hover); }
+tr.total:hover td { background: var(--total); }
+td.wk { min-width: 46px; }
+.lab { display: inline-flex; align-items: center; gap: 4px; }
+.tog { font: inherit; width: 20px; height: 20px; line-height: 1; border: 1px solid var(--line); background: var(--surface); color: var(--fg); border-radius: 4px; cursor: pointer; padding: 0; font-size: 13px; }
+.sp { display: inline-block; width: 20px; }
+.l2 .lab { padding-left: 18px; } .l3 .lab { padding-left: 36px; }
+.l3 .lab span:last-child { color: var(--muted); }
+.x { font: inherit; border: 0; background: none; color: var(--muted); cursor: pointer; padding: 0 0 0 6px; font-size: 14px; line-height: 1; }
+.x:hover { color: var(--fg); }
+.how { color: var(--muted); font-size: 13px; display: grid; gap: 4px; }
+.how p { margin: 0; max-width: 90ch; }
+.empty { color: var(--muted); padding: 28px; text-align: center; border: 1px dashed var(--line); border-radius: 8px; }
+#toast { position: fixed; bottom: calc(16px + env(safe-area-inset-bottom, 0px)); left: 50%; transform: translateX(-50%); background: var(--fg); color: var(--bg); padding: 8px 14px; border-radius: 6px; font-size: 13px; z-index: 60; }
+
+/* indicator drawer */
+.drawer { position: fixed; inset: 0; z-index: 40; display: flex; justify-content: flex-end; }
+.drawer[hidden] { display: none; }
+.scrim { position: absolute; inset: 0; background: var(--scrim); }
+.dpanel { position: relative; width: min(460px, 100vw); height: 100%; background: var(--surface); border-left: 1px solid var(--line); display: flex; flex-direction: column; padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); padding-right: env(safe-area-inset-right, 0px); }
+.dhead { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 14px 16px 6px; }
+.dhead h3 { margin: 0; font-size: 16px; }
+.dcount { color: var(--muted); font-size: 13px; padding: 0 16px; }
+.dtools { display: flex; flex-wrap: wrap; gap: 8px; padding: 10px 16px; }
+.dtools input { flex: 1 1 100%; width: 100%; }
+.dlist { flex: 1; overflow: auto; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.dg { border-bottom: 1px solid var(--line); }
+.dgh { display: flex; align-items: center; gap: 10px; padding: 8px 16px; }
+.dgn { flex: 1; display: flex; align-items: center; gap: 8px; font: inherit; font-size: 14px; font-weight: 600; text-align: left; background: none; border: 0; color: var(--fg); cursor: pointer; padding: 2px 0; min-width: 0; }
+.dgn .car { width: 14px; color: var(--muted); flex: 0 0 auto; }
+.dgn .nm { overflow-wrap: anywhere; }
+.cnt { color: var(--muted); font-size: 12px; flex: 0 0 auto; }
+.dgo { padding: 0 16px 10px 40px; display: grid; gap: 2px; }
+.dgo label { flex-direction: row; align-items: center; gap: 10px; font-size: 13px; letter-spacing: 0; text-transform: none; font-weight: 400; color: var(--fg); padding: 3px 0; }
+input[type="checkbox"] { accent-color: var(--accent); width: 17px; height: 17px; margin: 0; flex: 0 0 auto; }
+.dfoot { padding: 12px 16px; display: flex; justify-content: flex-end; }
+@media (prefers-reduced-motion: no-preference) { .btn, .chip, .tog, nav a { transition: background 0.12s; } }
+
+/* icons, sidebar accordion, detail control, empty-cell codes */
+.ic { width: 16px; height: 16px; flex: none; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; vertical-align: -3px; }
+.btn .ic, summary.btn .ic { margin-right: 6px; }
+.navq { position: relative; padding: 0 2px; }
+.navq .ic { position: absolute; left: 12px; top: 10px; color: var(--muted); }
+.navq input { width: 100%; padding-left: 32px; }
+nav { gap: 4px; }
+.ns { display: flex; flex-direction: column; }
+nav .sec { display: flex; align-items: center; gap: 9px; width: 100%; margin: 0; padding: 9px 10px; font: inherit; font-size: 13.5px; font-weight: 700; letter-spacing: 0; text-transform: none; color: var(--fg); background: none; border: 0; border-radius: 6px; cursor: pointer; text-align: left; }
+nav .sec:hover { background: var(--hover); }
+nav .sec .sn { flex: 1; }
+nav .sec .cnt { font-size: 11.5px; font-weight: 600; color: var(--muted); background: var(--head); border-radius: 999px; padding: 1px 8px; }
+nav .sec .chev { transition: transform 0.15s; color: var(--muted); }
+nav .sec[aria-expanded="true"] .chev { transform: rotate(90deg); }
+nav .sec.cur { color: var(--accent); }
+nav .items { display: flex; flex-direction: column; gap: 1px; margin: 2px 0 6px 18px; padding-left: 8px; border-left: 2px solid var(--line); }
+nav .items[hidden], .ns[hidden], nav a[hidden] { display: none; }
+nav .items a { padding: 6px 9px; font-size: 13px; }
+.tb .find { position: relative; }
+.tb .find .ic { position: absolute; left: 9px; top: 9px; color: var(--muted); }
+.tb .find input { width: 210px; padding: 7px 8px 7px 30px; font-size: 13px; }
+.seg button .ic { margin-right: 5px; }
+.dlab { display: inline-flex; align-items: center; gap: 8px; font-size: 11px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; color: var(--muted); }
+.legend { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 16px; font-size: 12.5px; color: var(--muted); }
+.legend .code, td.nr .cd { font-weight: 700; font-size: 11px; letter-spacing: 0.04em; border-radius: 4px; padding: 1px 5px; background: var(--head); color: var(--muted); }
+td.nr { color: var(--muted); opacity: 1; font-size: 11px; font-weight: 700; letter-spacing: 0.04em; text-align: center; }
+td.nr.nv { background: color-mix(in srgb, var(--muted) 10%, transparent); }
+td.nr.nq { background: repeating-linear-gradient(135deg, transparent 0 5px, color-mix(in srgb, var(--muted) 14%, transparent) 5px 7px); }
+.l3 .ty { font-size: 10.5px; font-weight: 700; letter-spacing: 0.04em; color: var(--muted); border: 1px solid var(--line); border-radius: 4px; padding: 0 4px; margin-left: 6px; }
+
+/* tidy top, collapsible panel, multi-select dropdowns */
+.shell.collapsed { grid-template-columns: minmax(0, 1fr); }
+.shell.collapsed .side { display: none; }
+.main > header { align-items: flex-start; }
+.hl { display: flex; gap: 12px; align-items: flex-start; min-width: 0; }
+.hl .btn { padding: 7px 9px; margin-top: 1px; }
+.hl .btn .ic { margin: 0; }
+.brand { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
+.brand .btn { padding: 5px 7px; }
+.brand .btn .ic { margin: 0; }
+@media (max-width: 960px) { #navToggle, .brand .btn { display: none; } }
+.panel { display: grid; grid-template-columns: repeat(auto-fit, minmax(135px, 1fr)); gap: 12px 14px; align-items: end; }
+.panel .seg button { white-space: nowrap; padding: 7px 8px; }
+.panel .seg { height: 35px; }
+.panel select, .panel .msb { width: 100%; }
+.panel .seg { align-self: stretch; }
+.panel .seg button { flex: 1; }
+.msb { font: inherit; font-size: 14px; text-transform: none; letter-spacing: 0; font-weight: 400; color: var(--fg); background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 7px 8px; display: flex; align-items: center; gap: 6px; cursor: pointer; text-align: left; }
+.msb .mst { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.msb .ic { margin: 0; color: var(--muted); }
+.ms { position: relative; }
+.mspop { position: absolute; left: 0; top: calc(100% + 4px); width: 290px; max-width: 86vw; max-height: 360px; display: flex; flex-direction: column; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18); z-index: 25; text-transform: none; letter-spacing: 0; }
+.mspop[hidden] { display: none; }
+.mspop .msq { margin: 8px 8px 4px; width: calc(100% - 16px); }
+.msact { display: flex; gap: 6px; padding: 4px 8px 8px; border-bottom: 1px solid var(--line); }
+.msact button { font: inherit; font-size: 12.5px; background: none; border: 1px solid var(--line); border-radius: 6px; padding: 3px 9px; cursor: pointer; color: var(--fg); }
+.msact button:hover { background: var(--hover); }
+.msl { overflow: auto; padding: 4px 0; }
+.msl label { flex-direction: row; align-items: center; gap: 8px; padding: 5px 12px; font-size: 13px; font-weight: 400; letter-spacing: 0; text-transform: none; color: var(--fg); cursor: pointer; }
+.msl label:hover { background: var(--hover); }
+.msl label .nm { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.msl label .n { color: var(--muted); font-size: 12px; }
+.msl .msg { padding: 8px 12px 2px; font-size: 11px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: var(--muted); }
+.msl .none { padding: 12px; color: var(--muted); font-size: 13px; }
+.tb { display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: center; justify-content: space-between; }
+.tbg { display: flex; flex-wrap: wrap; gap: 8px 10px; align-items: center; }
+.tbg select { width: 190px; }
+.tb .btn, .tb summary.btn, .tbg select, .tb .find input { height: 36px; box-sizing: border-box; display: inline-flex; align-items: center; }
+.tb .find input { display: block; }
+.tb .find .ic { top: 10px; }
+.tbg select { display: block; }
+.tb { justify-content: flex-start; }
+.tb .menu { margin-left: auto; }
+.tb2 { display: flex; align-items: center; gap: 10px; }
+.tb2 .dlab { gap: 12px; }
+.toolsd { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; }
+.toolsd > summary { list-style: none; cursor: pointer; display: flex; align-items: center; gap: 8px; padding: 9px 14px; font-size: 13.5px; font-weight: 700; }
+.toolsd > summary::-webkit-details-marker { display: none; }
+.toolsd > summary .th { flex: 1; font-weight: 400; font-size: 12.5px; color: var(--muted); }
+.toolsd > summary .ic:last-child { color: var(--muted); transform: rotate(90deg); transition: transform 0.15s; }
+.toolsd[open] > summary .ic:last-child { transform: rotate(-90deg); }
+.toolsd[open] > summary { border-bottom: 1px solid var(--line); }
+.toolsd .panel.tools { border: 0; box-shadow: none; background: none; }
+.panel.tools { display: flex; flex-wrap: wrap; gap: 14px 20px; align-items: flex-end; }
+.panel.tools .trow { display: flex; gap: 8px; }
+.panel.tools .trow select { width: 180px; }
+.find { position: relative; }
+.panel .srch { grid-column: span 2; }
+@media (min-width: 1100px) { .panel:not(.tools) { grid-template-columns: repeat(7, minmax(0, 1fr)); } .panel .srch { grid-column: span 6; } }
+.panel .find input { width: 100%; height: 35px; box-sizing: border-box; padding: 7px 8px 7px 32px; font-size: 14px; }
+.panel .find .ic { position: absolute; left: 10px; top: 10px; color: var(--muted); }
+.panel.tools .find { position: relative; }
+.panel.tools .find input { width: 240px; padding: 7px 8px 7px 32px; font-size: 13px; }
+.panel.tools .find .ic { position: absolute; left: 10px; top: 10px; color: var(--muted); }
+.panel.tools summary.btn { text-transform: none; letter-spacing: 0; font-size: 13px; }
+.panel.tools .btn.primary { text-transform: none; letter-spacing: 0; }
+.panel.tools .dl { margin-left: auto; }
+.panel.tools .wide { flex-basis: 100%; padding-top: 12px; border-top: 1px solid var(--line); }
+.panel.tools .wide .seg { align-self: flex-start; height: auto; }
+.panel.tools .wide .seg button { flex: none; padding: 8px 14px; display: inline-flex; align-items: center; }
+.panel.tools .btn, .panel.tools select, .panel.tools input { height: 36px; box-sizing: border-box; }
+.panel.tools summary.btn { display: inline-flex; align-items: center; }
+.tb2 .seg { flex-wrap: wrap; }
+.tb2 .seg button { height: 34px; display: inline-flex; align-items: center; }
+.metaline { display: flex; flex-wrap: wrap; gap: 6px 24px; align-items: center; justify-content: space-between; color: var(--muted); font-size: 12.5px; }
+
+/* indicator edges: a firm line where each indicator ends, a heavier one where a group ends */
+:root { --ind: color-mix(in srgb, var(--accent) 80%, var(--line)); --grp: var(--accent); --band: color-mix(in srgb, var(--accent) 7%, transparent); }
+table th.ie, table td.ie { border-right: 2px solid var(--ind); }
+table th.ge, table td.ge { border-right: 3px solid var(--grp); }
+th.bd, td.bd { background-image: linear-gradient(var(--band), var(--band)); }
+
+/* v10: clear header bands, neutral banding, amber hover */
+:root { --h1: #0b3f3a; --h2: #0f6b63; --h3: #cfe3df; --hov: #fff1cc; --band: color-mix(in srgb, var(--fg) 5.5%, transparent); }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --h1: #0a2e2b; --h2: #14554e; --h3: #24403c; --hov: #3a3115; } }
+:root[data-theme="dark"] { --h1: #0a2e2b; --h2: #14554e; --h3: #24403c; --hov: #3a3115; }
+table thead tr.r1 th { background: var(--h1); color: #fff; border-color: rgba(255, 255, 255, 0.2); font-weight: 700; }
+table thead tr.r2 th { background: var(--h2); color: #fff; border-color: rgba(255, 255, 255, 0.2); }
+table thead tr.r3 th { background: var(--h3); color: var(--fg); font-weight: 600; }
+table thead th.rs { background: var(--h1); color: #fff; }
+table thead th.c1, table thead th.c2 { background: var(--h1); color: #fff; border-color: rgba(255, 255, 255, 0.2); }
+table thead th .x { color: rgba(255, 255, 255, 0.7); }
+table thead th .x:hover { color: #fff; }
+table thead tr.r1 th.ie, table thead tr.r1 th.ge, table thead tr.r2 th.ie, table thead tr.r2 th.ge { border-right-color: rgba(255, 255, 255, 0.75); }
+table thead tr.r3 th.ie { border-right-color: var(--h2); }
+table thead tr.r3 th.ge { border-right-color: var(--h1); }
+table thead th.bd { background-image: none; }
+tr.data:hover td { background-color: var(--hov); }
+tr.total:hover td { background-color: var(--total); }
+
+tr.subtot td { font-weight: 600; }
+tr.subtot td.c1, tr.subtot td.c2 { background: var(--head); }
+</style>
+<script>window.LS_API = "/api";</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
+
+<div class="shell" id="shell">
+  <aside class="side" id="side">
+    <div class="brand"><div><h1>LS 2.0 analysis tables</h1><div class="sub" id="sub">Longitudinal Study 2.0 &middot; Kaduna State</div></div><button class="btn" type="button" id="navClose" aria-label="Hide the page list" title="Hide the page list"></button></div>
+    <button class="btn" type="button" id="sideBtn" aria-expanded="false"><span id="sideCur">Pages</span><span>&#9662;</span></button>
+    <div class="menuwrap">
+      <div class="navq"><span id="navqi"></span><input type="search" id="navq" placeholder="Find a page" aria-label="Find a page"></div>
+      <nav id="nav" aria-label="Analysis pages"></nav>
+      <details class="off" id="off"></details>
+    </div>
+  </aside>
+  <main class="main">
+    <header><div class="hl"><button class="btn" type="button" id="navToggle" aria-expanded="true" aria-label="Show or hide the page list" title="Show or hide the page list"></button><div class="pagehead" id="pagehead"></div></div><div class="hr"><button class="btn aib" type="button" id="aiBtn" hidden></button><span class="tag">Prototype</span></div></header>
+    <div id="app"><div class="empty">Loading&hellip;</div></div>
+  </main>
+</div>
+
+<div class="drawer" id="drawer" hidden>
+  <div class="scrim" data-close="1"></div>
+  <aside class="dpanel" role="dialog" aria-modal="true" aria-label="Choose indicators">
+    <div class="dhead"><h3>Choose indicators</h3><button class="btn" type="button" data-close="1" aria-label="Close">Close</button></div>
+    <div class="dcount" id="dcount"></div>
+    <div class="dtools">
+      <input type="search" id="q" placeholder="Search indicators" aria-label="Search indicators">
+      <button class="btn" type="button" id="selAll">Select all</button>
+      <button class="btn" type="button" id="selNone">Clear all</button>
+      <button class="btn" type="button" id="grpOpen">Open groups</button>
+      <button class="btn" type="button" id="grpShut">Close groups</button>
+    </div>
+    <div class="dlist" id="dlist"></div>
+    <div class="dfoot"><button class="btn primary" type="button" data-close="1">Done</button></div>
+  </aside>
+</div>
+<div id="toast" role="status" aria-live="polite" hidden></div>
+
+<script>
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const up = s => s.charAt(0).toUpperCase() + s.slice(1);
+const cache = {};
+let F = [], LGAS = [], MAN = null, P = null, dl = null, SEC = [];
+let byKey = new Map(), r1Map = new Map();
+
+const ICONS = {
+  building: 'M3 21h18M5 21V7l7-4 7 4v14M9 21v-5h6v5M9 10h.01M15 10h.01M9 13h.01M15 13h.01',
+  calendar: 'M8 2v4M16 2v4M3 9h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z',
+  users: 'M17 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2M10 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8M21 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75',
+  pill: 'M10.5 20.5 3.5 13.5a5 5 0 0 1 7-7l7 7a5 5 0 0 1-7 7zM8.5 8.5l7 7',
+  syringe: 'M18 2l4 4M17 7l3-3M19 9l-8.7 8.7a1 1 0 0 1-1.4 0l-3.6-3.6a1 1 0 0 1 0-1.4L14 4M2 22l5-5M9 11l4 4M11 9l4 4',
+  search: 'M21 21l-4.3-4.3M11 18a7 7 0 1 1 0-14 7 7 0 0 1 0 14',
+  sliders: 'M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6',
+  download: 'M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3',
+  chev: 'M9 6l6 6-6 6',
+  pin: 'M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11zM12 12a2 2 0 1 0 0-4 2 2 0 0 0 0 4',
+  grid: 'M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM14 14h7v7h-7z',
+  cross: 'M9 3h6v6h6v6h-6v6H9v-6H3V9h6z',
+  info: 'M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20zM12 16v-4M12 8h.01',
+  panel: 'M3 5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2zM9 3v18',
+  x: 'M18 6 6 18M6 6l12 12',
+  spark: 'M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9zM19 16l.8 2.2L22 19l-2.2.8L19 22l-.8-2.2L16 19l2.2-.8z',
+  tag: 'M20.6 13.4l-7.2 7.2a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8zM7.5 7.5h.01',
+  layers: 'M12 2 2 7l10 5 10-5zM2 17l10 5 10-5M2 12l10 5 10-5'
+};
+const ic = n => '<svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="' + ICONS[n] + '"/></svg>';
+const WHY = { NV: 'No visit: no record for this week', NR: 'Visited, but no answer recorded (skipped or not applicable)', NQ: 'Not asked or not collected: no facility answered this week', NV1: 'No Round 1 record' };
+let ansCW = [], wkRows = [];
+const S = {
+  id: null, checked: new Set(), q: '', mode: 'count', area: 'All', type: 'All', state: 'All',
+  lgaOff: new Set(), wOff: new Set(), w0: 0, w1: 0, open: new Set(), egrp: new Set(), detail: 2, find: '', sec: new Set(), navq: ''
+};
+
+/* Hosted version: window.LS_API = '/api' is set by the host page. Without it the page reads data/*.json. */
+const API = window.LS_API || null;
+async function loadPage(id) {
+  if (!API) return getJSON('data/' + id + '.json');
+  // one small request per LGA, joined here, so no single reply gets large
+  const parts = await Promise.all(LGAS.map(l => getJSON(API + '/page?id=' + encodeURIComponent(id) + '&lga=' + encodeURIComponent(l))));
+  const out = Object.assign({}, parts[0], { rows: [], r1: [] });
+  parts.forEach(x => { out.rows = out.rows.concat(x.rows); out.r1 = out.r1.concat(x.r1 || []); });
+  return out;
+}
+async function getJSON(path) {
+  if (cache[path]) return cache[path];
+  const r = await fetch(path);
+  if (!r.ok) throw new Error(path + ' ' + r.status);
+  return (cache[path] = await r.json());
+}
+
+/* ---------- boot and routing ---------- */
+
+/* ---- Ask AI: answers from the data on the open page ---- */
+let AIS = null, AIH = [], AICtl = null, AIBusy = false;
+const AIRULES = 'You answer questions about one table from a health facility study in Kaduna State, Nigeria. Rules: (1) Get every number from the tools. Never guess and never use memory. (2) If the data cannot answer, say so. (3) An empty value means no answer was recorded. It is not zero. (4) For Yes/No columns the value is the number of facilities that answered Yes. For a percent, divide by the facilities in that group and say so. (5) Say which weeks and filters you used. (6) PHC means primary health centre. HC means health clinic. (7) Write short, plain sentences. Use short lists, no tables, no em dashes. Give the key number first.';
+function aiCols() { return P.cols.map((c, k) => ({ id: k, indicator: c.g, option: c.o || '', type: c.k === 'b' ? 'Yes count' : 'number (summed)', round1_only: c.p === 'r' || undefined })); }
+function aiPageInfo() {
+  return { page: (MAN.pages.find(p => p.id === S.id) || {}).title, weeks: P.weeks, columns: aiCols(), facilities: F.length, lgas: LGAS,
+    view_filters: { state: S.state, area: S.area, type: S.type, lgas_excluded: [...S.lgaOff], weeks: P.weeks.length ? P.weeks[S.w0] + ' to ' + P.weeks[S.w1] : 'Round 1', facilities_in_view: selected().length, columns_shown: [...S.checked].sort((a, b) => a - b) } };
+}
+function aiQuery(inp) {
+  inp = inp || {};
+  const ks = (inp.columns || []).map(Number).filter(k => P.cols[k]);
+  if (!ks.length) return { error: 'Give valid column ids from page_info.' };
+  if (ks.length > 12) return { error: 'At most 12 columns per call. Split the request.' };
+  const nw = P.weeks.length;
+  let wis = (inp.weeks && inp.weeks.length) ? inp.weeks.map(w => P.weeks.indexOf(String(w))).filter(i => i >= 0) : (nw ? P.weeks.map((_, i) => i) : [0]);
+  if (!wis.length) wis = nw ? P.weeks.map((_, i) => i) : [0];
+  const low = v => (Array.isArray(v) ? v : (v == null ? [] : [v])).map(x => String(x).toLowerCase());
+  const fl = { lga: low(inp.lga), ward: low(inp.ward), type: low(inp.type), area: low(inp.area), state: low(inp.state) };
+  let base = inp.apply_view_filters ? selected() : F.map((_, i) => i);
+  base = base.filter(i => { const f = F[i];
+    return (!fl.lga.length || fl.lga.includes(f.lga.toLowerCase())) && (!fl.ward.length || fl.ward.includes(f.ward.toLowerCase())) && (!fl.type.length || fl.type.includes(f.type.toLowerCase())) && (!fl.area.length || fl.area.includes(f.area.toLowerCase())) && (!fl.state.length || fl.state.includes((f.state || 'Kaduna').toLowerCase())); });
+  const by = inp.group_by || 'none', gm = new Map();
+  base.forEach(i => { const f = F[i]; const key = by === 'lga' ? f.lga : by === 'ward' ? f.lga + ' / ' + f.ward : by === 'type' ? f.type : by === 'area' ? f.area : by === 'facility' ? f.name + ' (' + f.lga + ', ' + f.type + ')' : 'All'; if (!gm.has(key)) gm.set(key, []); gm.get(key).push(i); });
+  const nG = gm.size;
+  if (nG > 60 || nG * ks.length * wis.length > 2500) return { error: 'Too much data (' + nG + ' groups, ' + ks.length + ' columns, ' + wis.length + ' weeks). Narrow the weeks, columns or filters, or group more coarsely.' };
+  const groups = [...gm.entries()].map(([g, facs]) => { const data = {};
+    ks.forEach(k => { const per = P.cols[k].p === 'r' ? [0] : wis; const cs = per.map(wi => cell(facs, wi, k)); data[k] = { weeks: P.cols[k].p === 'r' ? ['Round 1'] : per.map(wi => P.weeks[wi]), value: cs.map(c => c.ans ? Math.round(c.s * 10) / 10 : null), answered: cs.map(c => c.ans) }; });
+    return { group: g, facilities: facs.length, data }; });
+  return { columns: Object.fromEntries(ks.map(k => [k, P.cols[k].g + (P.cols[k].o ? ': ' + P.cols[k].o : '')])), groups };
+}
+function aiTools() {
+  return [
+    { name: 'page_info', description: 'Describes the open page: its columns (id, indicator, option), its weeks, and the filters the user currently has on screen. Call this first.', inputSchema: { type: 'object', properties: {} },
+      async execute() { aiStatus('Reading the page layout...'); return aiPageInfo(); } },
+    { name: 'query', description: 'Counts (Yes columns) or sums (number columns) per group and week from the open page. Values are null when no answer was recorded. Each value has an "answered" count next to it.',
+      inputSchema: { type: 'object', properties: {
+        columns: { type: 'array', items: { type: 'integer' }, description: 'Column ids from page_info (max 12).' },
+        weeks: { type: 'array', items: { type: 'string' }, description: 'Week labels such as WK10. Leave out for all weeks.' },
+        group_by: { type: 'string', enum: ['none', 'lga', 'ward', 'type', 'area', 'facility'] },
+        lga: { type: 'array', items: { type: 'string' } }, ward: { type: 'array', items: { type: 'string' } },
+        type: { type: 'array', items: { type: 'string' }, description: 'PHC or HC' }, area: { type: 'array', items: { type: 'string' }, description: 'Urban or Rural' },
+        apply_view_filters: { type: 'boolean', description: 'True only when the user asks about what is shown or selected on screen.' } }, required: ['columns'] },
+      async execute(i) { aiStatus('Reading the data...'); return aiQuery(i); } }
+  ];
+}
+function aiStatus(t) { const e = document.querySelector('#aiMsg .msg.a:last-child .st'); if (e) e.textContent = t; }
+function aiMd(t) {
+  const lines = esc(t).split('\n'); let out = '', ul = false;
+  lines.forEach(l => { const m = l.match(/^\s*[-*]\s+(.*)/); const inl = x => x.replace(/\*\*([^*]+)\*\*/g, '<b>$1</b>');
+    if (m) { if (!ul) { out += '<ul>'; ul = true; } out += '<li>' + inl(m[1]) + '</li>'; }
+    else { if (ul) { out += '</ul>'; ul = false; } if (l.trim()) out += '<p>' + inl(l) + '</p>'; } });
+  return out + (ul ? '</ul>' : '');
+}
+function aiSuggest() {
+  const c = P.cols[[...S.checked][0] || 0] || P.cols[0]; const nm = c ? (c.g + (c.o ? ': ' + c.o : '')) : 'the first indicator';
+  return ['Give me a short summary of this page.', 'Which LGA has the lowest numbers for ' + nm + '?', 'How did ' + nm + ' change from the first to the last week?'];
+}
+function aiReset() {
+  AIH = []; if (AICtl) AICtl.abort(); AIBusy = false;
+  const m = $('aiMsg'); if (!m) return;
+  m.innerHTML = '';
+  $('aiSub').textContent = 'Answers use only the data on: ' + ((MAN.pages.find(p => p.id === S.id) || {}).title || '');
+  const ch = $('aiChips'); ch.hidden = false; ch.innerHTML = aiSuggest().map(q => '<button type="button">' + esc(q) + '</button>').join('');
+  ch.querySelectorAll('button').forEach(b => { b.onclick = () => aiAsk(b.textContent); });
+}
+function aiErr(e) {
+  const c = e && e.code;
+  if (c === 'cancelled') return 'Stopped.';
+  if (c === 'not_granted') return 'AI access was not allowed. Reload the page and allow it to use this feature.';
+  if (c === 'rate_limited') return 'Too many questions at once. Wait a moment and try again.';
+  return 'The AI could not answer this time. Try again. ' + (e && e.message ? '(' + e.message + ')' : '');
+}
+async function aiAsk(q) {
+  q = (q || '').trim(); if (!q || AIBusy || !AIS) return;
+  AIBusy = true; $('aiSend').textContent = 'Stop'; $('aiIn').value = ''; $('aiChips').hidden = true;
+  const m = $('aiMsg'); m.insertAdjacentHTML('beforeend', '<div class="msg u">' + esc(q) + '</div><div class="msg a"><span class="st">Thinking...</span></div>');
+  const box = m.lastElementChild; m.scrollTop = m.scrollHeight;
+  AIH.push({ role: 'user', content: q });
+  const turns = AIH.map((t, i) => i === 0 ? { role: 'user', content: AIRULES + '\n\nThe page open is "' + ((MAN.pages.find(p => p.id === S.id) || {}).title || '') + '".\n\nQuestion: ' + t.content } : t);
+  AICtl = new AbortController(); let got = '';
+  try {
+    const r = await AIS(turns, { tools: aiTools(), signal: AICtl.signal, cache: false, onText: ({ text }) => { got = text; box.innerHTML = aiMd(text); m.scrollTop = m.scrollHeight; } });
+    const t = (r && r.text) || got || 'No answer came back.';
+    box.innerHTML = aiMd(t) + (r && r.truncated ? '<p class="st">The answer was cut short.</p>' : ''); AIH.push({ role: 'assistant', content: t });
+  } catch (e) {
+    if (got) { box.innerHTML = aiMd(got) + '<p class="st">' + esc(aiErr(e)) + '</p>'; AIH.push({ role: 'assistant', content: got }); }
+    else { box.innerHTML = '<span class="st">' + esc(aiErr(e)) + '</span>'; AIH.pop(); }
+  }
+  AIBusy = false; $('aiSend').textContent = 'Ask'; m.scrollTop = m.scrollHeight;
+}
+async function initAI() {
+  try { AIS = (window.claude && claude.use) ? await claude.use('sample') : null; } catch (e) { AIS = null; }
+  if (!AIS) return;
+  const b = $('aiBtn'); b.innerHTML = ic('spark') + 'Ask AI'; b.hidden = false;
+  document.body.insertAdjacentHTML('beforeend', '<aside class="aip" id="aiP" hidden aria-label="Ask AI"><div class="ah"><h3>Ask AI</h3><button type="button" class="btn" id="aiClr" title="Start a new chat">New chat</button><button type="button" class="btn" id="aiX" aria-label="Close"></button></div><div class="as" id="aiSub"></div><div class="am" id="aiMsg" aria-live="polite"></div><div class="chips" id="aiChips"></div><form id="aiF"><textarea id="aiIn" rows="1" placeholder="Ask about this page" aria-label="Question"></textarea><button type="submit" class="btn primary" id="aiSend">Ask</button></form></aside>');
+  $('aiX').innerHTML = ic('x');
+  b.onclick = () => { const p = $('aiP'); p.hidden = !p.hidden; if (!p.hidden) { if (!$('aiMsg').children.length) aiReset(); $('aiIn').focus(); } };
+  $('aiX').onclick = () => { $('aiP').hidden = true; };
+  $('aiClr').onclick = () => { aiReset(); $('aiChips').hidden = false; };
+  $('aiF').onsubmit = e => { e.preventDefault(); if (AIBusy) { if (AICtl) AICtl.abort(); } else aiAsk($('aiIn').value); };
+  $('aiIn').onkeydown = e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); if (!AIBusy) aiAsk($('aiIn').value); } };
+  if (P) aiReset();
+}
+
+(async function boot() {
+  initAI();
+  try {
+    const [fac, man] = await Promise.all([getJSON(API ? API + '/facilities' : 'data/facilities.json'), getJSON(API ? API + '/manifest' : 'data/pages.json')]);
+    F = fac; MAN = man;
+    LGAS = [...new Set(F.map(f => f.lga))];
+    $('sub').textContent = 'Longitudinal Study 2.0 \u00b7 ' + F.length + ' facilities in ' + LGAS.length + ' LGAs';
+    SEC = [['building', 'Facility', ['facility-info', 'staff-training', 'cce-biweekly', 'cce-interruption']], ['calendar', 'Service days', ['days-service', 'expected-covered', 'expected-total', 'expected-reasons']], ['users', 'Health workers', ['hw-availability', 'hw-absenteeism', 'absenteeism-reasons', 'perm-absenteeism', 'salary-delay', 'roster']], ['pill', 'SCM: Essential medicines', ['em-available', 'em-observed', 'em-expired', 'em-not-observed', 'em-min-calc', 'em-ms-sb', 'em-stockout', 'em-req-tracker', 'em-req-numbers', 'em-req-reason', 'em-source']], ['syringe', 'SCM: Vaccines', ['vc-available', 'vc-ms-sb', 'vc-observed', 'vc-expired', 'vc-not-observed', 'vc-dispense', 'vc-source']]];
+    const seen = new Set(MAN.pages.length ? [] : []);
+    SEC.forEach(s => s[2].forEach(i => seen.add(i)));
+    const rest = man.pages.filter(p => !seen.has(p.id));
+    if (rest.length) SEC.push(['grid', 'Other', rest.map(p => p.id)]);
+    $('navqi').innerHTML = ic('search');
+    $('nav').innerHTML = SEC.map(([icon, name, ids], si) => {
+      const ps = ids.map(i => man.pages.find(p => p.id === i)).filter(Boolean);
+      return '<div class="ns" data-ns="' + si + '"><button type="button" class="sec" data-sec="' + si + '" aria-expanded="false">' + ic(icon) + '<span class="sn">' + esc(name) + '</span><span class="cnt">' + ps.length + '</span>' + ic('chev').replace('class="ic"', 'class="ic chev"') + '</button><div class="items" hidden>' +
+        ps.map(p => '<a href="#' + p.id + '" data-id="' + p.id + '" data-t="' + esc(p.title.toLowerCase() + ' ' + (p.sheet || '').toLowerCase()) + '">' + esc(p.title) + '</a>').join('') + '</div></div>';
+    }).join('');
+    $('navToggle').innerHTML = ic('panel'); $('navClose').innerHTML = ic('x');
+    const togNav = () => { const c = $('shell').classList.toggle('collapsed'); $('navToggle').setAttribute('aria-expanded', !c); };
+    $('navToggle').onclick = togNav; $('navClose').onclick = togNav;
+    $('sideBtn').onclick = () => { const s = $('side'); s.classList.toggle('open'); $('sideBtn').setAttribute('aria-expanded', s.classList.contains('open')); };
+    $('nav').onclick = e => {
+      const sb = e.target.closest('[data-sec]');
+      if (sb) { const n = +sb.dataset.sec; S.sec.has(n) ? S.sec.delete(n) : S.sec.add(n); syncNav(); return; }
+      if (e.target.closest('a')) { $('side').classList.remove('open'); $('sideBtn').setAttribute('aria-expanded', 'false'); }
+    };
+    $('navq').oninput = e => { S.navq = e.target.value.trim().toLowerCase(); syncNav(); };
+    $('off').innerHTML = '<summary>Not connected yet (' + man.off.length + ' sheets)</summary><ul>' + man.off.map(o => '<li><strong>' + esc(o.title) + '</strong> (' + esc(o.sheet) + '). ' + esc(o.note) + '</li>').join('') + '</ul>';
+    try { dl = await (window.claude && window.claude.use ? window.claude.use('downloads') : null); } catch (e) { dl = null; }
+    window.addEventListener('hashchange', route);
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDrawer(); });
+    wireDrawer();
+    route();
+  } catch (e) {
+    $('app').innerHTML = '<div class="empty">The data could not be loaded. ' + esc(e.message) + '</div>';
+  }
+})();
+
+function secOf(id) { return SEC.findIndex(s => s[2].includes(id)); }
+function syncNav() {
+  const q = S.navq, cur = secOf(S.id);
+  document.querySelectorAll('#nav .ns').forEach(ns => {
+    const si = +ns.dataset.ns; let any = 0;
+    ns.querySelectorAll('a').forEach(a => { const m = !q || a.dataset.t.includes(q) || SEC[si][1].toLowerCase().includes(q); a.hidden = !m; if (m) any++; });
+    ns.hidden = !any;
+    const open = q ? true : S.sec.has(si);
+    ns.querySelector('.items').hidden = !open;
+    const b = ns.querySelector('.sec'); b.setAttribute('aria-expanded', open); b.classList.toggle('cur', si === cur);
+  });
+}
+async function route() {
+  const id = (location.hash || '').replace('#', '') || MAN.pages[0].id;
+  const page = MAN.pages.find(p => p.id === id) || MAN.pages[0];
+  document.querySelectorAll('#nav a').forEach(a => a.setAttribute('aria-current', a.dataset.id === page.id ? 'page' : 'false'));
+  $('sideCur').textContent = page.title;
+  S.id = page.id; S.sec = new Set([secOf(page.id)]); S.find = ''; S.detail = 2; setDetail(2); syncNav();
+  $('app').innerHTML = '<div class="empty">Loading&hellip;</div>';
+  closeDrawer();
+  try { P = await loadPage(page.id); }
+  catch (e) { $('app').innerHTML = '<div class="empty">This page could not be loaded. ' + esc(e.message) + '</div>'; return; }
+  byKey = new Map(); P.rows.forEach(r => byKey.set(r[0] * 64 + r[1], r));
+  r1Map = new Map(); (P.r1 || []).forEach(r => r1Map.set(r[0], r));
+  const nw = Math.max(1, P.weeks.length), nc = P.cols.length;
+  ansCW = Array.from({ length: nw }, () => new Int32Array(nc)); wkRows = new Int32Array(nw);
+  P.rows.forEach(r => { wkRows[r[1]]++; const a = ansCW[r[1]]; for (let k = 0; k < nc; k++) if (r[2 + k] != null) a[k]++; });
+  S.checked = new Set(P.def || P.cols.map((_, k) => k)); S.q = ''; if (AIS) aiReset(); S.egrp = new Set();
+  S.w0 = 0; S.w1 = Math.max(0, P.weeks.length - 1); S.mode = 'count';
+  const groups = [], gi = new Map();
+  P.cols.forEach((c, k) => { if (!gi.has(c.g)) { gi.set(c.g, groups.length); groups.push({ g: c.g, ks: [] }); } groups[gi.get(c.g)].ks.push(k); });
+  P.groups = groups; P.gidx = gi;
+  $('pagehead').innerHTML = '<div class="ttl"><button type="button" class="infob" id="infoB" aria-expanded="false" aria-controls="infoP" aria-label="About this page" title="About this page">' + ic('info') + '</button><h2>' + esc(page.title) + '</h2></div><div class="infop" id="infoP" hidden><div class="meta">Analysis sheet: ' + esc(page.sheet) + ' &middot; Staging tab: ' + esc(page.source) + ' &middot; ' + P.cols.length + ' indicators</div>' + (page.note ? '<div class="note">' + esc(page.note) + '</div>' : '') + '</div>';
+  $('infoB').onclick = e => { e.stopPropagation(); const o = $('infoP').hidden; $('infoP').hidden = !o; $('infoB').setAttribute('aria-expanded', String(o)); };
+  buildShell(); buildDrawer(); render();
+  window.scrollTo(0, 0);
+}
+
+/* ---------- shell ---------- */
+function buildShell() {
+  const hasW = P.weeks.length > 0;
+  const wo = P.weeks.map((w, i) => '<option value="' + i + '">' + w + '</option>').join('');
+  $('app').innerHTML =
+  '<div style="display:flex;flex-direction:column;gap:14px">' +
+    '<details class="toolsd" id="toolsd"><summary>' + ic('sliders') + 'Table tools<span class="th">Columns, row detail, download</span>' + ic('chev') + '</summary><section class="panel tools" aria-label="Table tools">' +
+      '<div class="lbl">Columns<div class="trow"><button class="btn primary" type="button" id="openInd">' + ic('sliders') + 'Indicators:&nbsp;<span id="indN"></span></button><select id="jump" aria-label="Jump to indicator group"></select></div></div>' +
+      '<div class="lbl dl">Export<details class="menu" id="dlmenu"><summary class="btn primary">' + ic('download') + 'Download</summary><div class="pop">' +
+        '<button type="button" id="dlGrid">Table as Excel</button><button type="button" id="dlGridCsv">Table as CSV</button>' +
+        '<button type="button" id="dlRaw">Raw rows as Excel</button><button type="button" id="dlRawCsv">Raw rows as CSV</button></div></details></div>' +
+      '<div class="lbl wide">Row detail<div class="seg" role="group" aria-label="Row detail"><button type="button" id="dLga">' + ic('pin') + 'LGAs</button><button type="button" id="dWard">' + ic('grid') + 'Wards</button><button type="button" id="dFac">' + ic('cross') + 'Facilities</button><button type="button" id="dAll">' + ic('layers') + 'Wards + facilities</button><button type="button" id="dTy">' + ic('tag') + 'Facilities by type</button></div></div>' +
+    '</section></details>' +
+    '<section class="panel" aria-label="Filters"><div class="fgrid" style="display:contents">' +
+      '<label>State<select id="state"><option value="All">All states</option>' + [...new Set(F.map(f => f.state || 'Kaduna'))].sort().map(x => '<option>' + x + '</option>').join('') + '</select></label>' +
+      '<div class="lbl">LGAs' + msHTML('msLga', 'pin') + '</div>' +
+      '<div class="lbl">Wards' + msHTML('msWard', 'grid') + '</div>' +
+      '<label>Facility residence<select id="area"><option>All</option><option>Urban</option><option>Rural</option></select></label>' +
+      '<label>Facility type<select id="type"><option value="All">All</option><option value="PHC">Primary Health Centre</option><option value="HC">Health Clinic</option></select></label>' +
+      (hasW ? '<label>From week<select id="w0">' + wo + '</select></label><label>To week<select id="w1">' + wo + '</select></label>' : '') +
+      '<div class="lbl srch">Search<div class="find">' + ic('search') + '<input type="search" id="find" placeholder="Find a facility or ward" aria-label="Find a facility or ward"></div></div>' +
+      '<div class="lbl" id="modeBox">Show<div class="seg" role="group" aria-label="Show"><button type="button" id="mCount" aria-pressed="true">Count</button><button type="button" id="mPct" aria-pressed="false" title="Percent of facilities">Percent</button></div></div>' +
+    '</div></section>' +
+    '<div class="metaline"><span id="stats"></span></div>' +
+    '<div class="grid" id="grid"></div>' +
+  '</div>';
+  $('state').onchange = e => { S.state = e.target.value; render(); };
+  $('area').onchange = e => { S.area = e.target.value; render(); };
+  $('type').onchange = e => { S.type = e.target.value; render(); };
+  if (hasW) {
+    $('w1').value = S.w1;
+    $('w0').onchange = e => { S.w0 = +e.target.value; if (S.w1 < S.w0) { S.w1 = S.w0; $('w1').value = S.w1; } render(); };
+    $('w1').onchange = e => { S.w1 = +e.target.value; if (S.w0 > S.w1) { S.w0 = S.w1; $('w0').value = S.w0; } render(); };
+  }
+  $('mCount').onclick = () => { S.mode = 'count'; render(); };
+  $('mPct').onclick = () => { S.mode = 'pct'; render(); };
+  wireMs();
+  $('dLga').onclick = () => { setDetail(0); render(); };
+  $('dWard').onclick = () => { setDetail(1); render(); };
+  $('dFac').onclick = () => { setDetail(2); render(); };
+  $('dAll').onclick = () => { setDetail(3); render(); };
+  $('dTy').onclick = () => { setDetail(4); render(); };
+  $('dTy').title = 'LGA, then PHC total and list, then HC total and list';
+  $('dLga').title = 'LGA rows only'; $('dWard').title = 'LGA and ward rows'; $('dFac').title = 'LGA and facility rows, no ward rows'; $('dAll').title = 'LGA, ward and facility rows';
+  $('find').oninput = e => { S.find = e.target.value.trim().toLowerCase(); render(); };
+  $('openInd').onclick = openDrawer;
+  $('jump').onchange = e => { const v = e.target.value; if (v === '') return; jumpTo(+v); e.target.value = ''; };
+  const menu = (id, fn) => { $(id).onclick = () => { $('dlmenu').open = false; fn(); }; };
+  menu('dlGrid', () => saveXlsx('grid'));
+  menu('dlGridCsv', () => save('LS2_' + S.id + '_table', gridAoa(false)));
+  menu('dlRaw', () => saveXlsx('raw'));
+  menu('dlRawCsv', () => save('LS2_' + S.id + '_raw_rows', rawAoa()));
+  $('grid').onclick = e => {
+    const t = e.target.closest('[data-tog]');
+    if (t) { const id = t.dataset.tog; S.open.has(id) ? S.open.delete(id) : S.open.add(id); if (!((S.detail === 2 || S.detail === 4) && id[0] !== 'w')) S.detail = null; render(); return; }
+    const hk = e.target.closest('[data-hide]');
+    if (hk) { S.checked.delete(+hk.dataset.hide); render(); return; }
+    const hg = e.target.closest('[data-hidegrp]');
+    if (hg) { P.groups[+hg.dataset.hidegrp].ks.forEach(k => S.checked.delete(k)); render(); }
+  };
+}
+
+function msHTML(id, icon) {
+  return '<div class="ms" id="' + id + '"><button type="button" class="msb" aria-expanded="false" aria-haspopup="true">' + ic(icon) + '<span class="mst"></span>' + ic('chev').replace('class="ic"', 'class="ic" style="transform:rotate(90deg)"') + '</button>' +
+    '<div class="mspop" hidden><input type="search" class="msq" placeholder="Search" aria-label="Search"><div class="msact"><button type="button" data-a="all">Select all</button><button type="button" data-a="none">Clear</button></div><div class="msl"></div></div></div>';
+}
+const wkey = f => f.lga + '|' + f.ward;
+function lgaItems() { return LGAS.map(l => ({ k: l, name: l, n: F.filter(f => f.lga === l).length, on: !S.lgaOff.has(l) })); }
+function wardItems() {
+  const out = [];
+  LGAS.filter(l => !S.lgaOff.has(l)).forEach(l => {
+    const ws = [...new Set(F.filter(f => f.lga === l).map(f => f.ward))].sort();
+    ws.forEach((w, i) => out.push({ k: l + '|' + w, name: w || 'No ward', grp: l, first: i === 0, n: F.filter(f => f.lga === l && f.ward === w).length, on: !S.wOff.has(l + '|' + w) }));
+  });
+  return out;
+}
+function fillMs(id) {
+  const box = $(id); if (!box) return;
+  const items = id === 'msLga' ? lgaItems() : wardItems();
+  const q = (box.querySelector('.msq').value || '').trim().toLowerCase();
+  let h = '', shown = 0;
+  items.forEach(it => {
+    if (q && !it.name.toLowerCase().includes(q) && !(it.grp || '').toLowerCase().includes(q)) return;
+    shown++;
+    if (it.grp && (it.first || q)) { const last = h.lastIndexOf('data-g="'); if (last < 0 || h.substr(last + 8, it.grp.length + 1) !== it.grp + '"') h += '<div class="msg" data-g="' + esc(it.grp) + '">' + esc(it.grp) + '</div>'; }
+    h += '<label><input type="checkbox" data-v="' + esc(it.k) + '"' + (it.on ? ' checked' : '') + '><span class="nm">' + esc(it.name) + '</span><span class="n">' + it.n + '</span></label>';
+  });
+  box.querySelector('.msl').innerHTML = shown ? h : '<div class="none">No match</div>';
+  const on = items.filter(i => i.on).length;
+  box.querySelector('.mst').textContent = (id === 'msLga' ? (on === items.length ? 'All LGAs (' + items.length + ')' : on + ' of ' + items.length + ' LGAs') : (on === items.length ? 'All wards (' + items.length + ')' : on + ' of ' + items.length + ' wards'));
+}
+function updMs() { fillMs('msLga'); fillMs('msWard'); }
+function wireMs() {
+  ['msLga', 'msWard'].forEach(id => {
+    const box = $(id), pop = box.querySelector('.mspop'), btn = box.querySelector('.msb');
+    btn.onclick = e => {
+      e.stopPropagation();
+      const open = pop.hidden;
+      document.querySelectorAll('.mspop').forEach(x => { x.hidden = true; });
+      document.querySelectorAll('.msb').forEach(x => x.setAttribute('aria-expanded', 'false'));
+      pop.hidden = !open; btn.setAttribute('aria-expanded', open);
+      if (open) { box.querySelector('.msq').focus(); }
+    };
+    pop.onclick = e => e.stopPropagation();
+    box.querySelector('.msq').oninput = () => fillMs(id);
+    pop.addEventListener('change', e => {
+      const v = e.target.dataset.v; if (v === undefined) return;
+      const off = id === 'msLga' ? S.lgaOff : S.wOff;
+      e.target.checked ? off.delete(v) : off.add(v);
+      render();
+    });
+    pop.addEventListener('click', e => {
+      const a = e.target.closest('[data-a]'); if (!a) return;
+      const vis = [...box.querySelectorAll('.msl input[data-v]')].map(i => i.dataset.v);
+      const off = id === 'msLga' ? S.lgaOff : S.wOff;
+      vis.forEach(v => a.dataset.a === 'all' ? off.delete(v) : off.add(v));
+      render();
+    });
+  });
+}
+document.addEventListener('click', e => { const ip = $('infoP'); if (ip && !ip.hidden && !e.target.closest('#infoP')) { ip.hidden = true; $('infoB').setAttribute('aria-expanded', 'false'); } document.querySelectorAll('.mspop').forEach(x => { x.hidden = true; }); document.querySelectorAll('.msb').forEach(x => x.setAttribute('aria-expanded', 'false')); });
+function setDetail(n) {
+  S.detail = n; S.open.clear();
+  if (n >= 1 && F.length) LGAS.forEach(l => S.open.add('l:' + l));
+  if (n === 3) F.forEach(f => S.open.add('w:' + f.lga + '|' + f.ward));
+  if (n === 4) F.forEach(f => S.open.add('lt:' + f.lga + '|' + f.type));
+}
+function jumpTo(n) {
+  const th = document.querySelector('#grid th[data-grp="' + n + '"]');
+  if (th) $('grid').scrollTo({ left: Math.max(0, th.offsetLeft - 340), behavior: 'smooth' });
+}
+
+/* ---------- indicator drawer ---------- */
+function openDrawer() { $('drawer').hidden = false; $('q').focus(); }
+function closeDrawer() { $('drawer').hidden = true; }
+function wireDrawer() {
+  $('drawer').addEventListener('click', e => { if (e.target.closest('[data-close]')) closeDrawer(); });
+  $('selAll').onclick = () => { S.checked = new Set(P.cols.map((_, k) => k)); render(); };
+  $('selNone').onclick = () => { S.checked.clear(); render(); };
+  $('grpOpen').onclick = () => { P.groups.forEach((g, n) => { if (g.ks.length > 1 || P.cols[g.ks[0]].o) S.egrp.add(n); }); syncDrawer(); };
+  $('grpShut').onclick = () => { S.egrp.clear(); syncDrawer(); };
+  $('q').oninput = e => { S.q = e.target.value.trim().toLowerCase(); syncDrawer(); };
+  $('dlist').addEventListener('click', e => {
+    const x = e.target.closest('[data-exp]');
+    if (x) { const n = +x.dataset.exp; S.egrp.has(n) ? S.egrp.delete(n) : S.egrp.add(n); syncDrawer(); }
+  });
+  $('dlist').addEventListener('change', e => {
+    const t = e.target;
+    if (t.dataset.grp !== undefined) { P.groups[+t.dataset.grp].ks.forEach(k => t.checked ? S.checked.add(k) : S.checked.delete(k)); }
+    else if (t.dataset.k !== undefined) { const k = +t.dataset.k; t.checked ? S.checked.add(k) : S.checked.delete(k); }
+    render();
+  });
+}
+function buildDrawer() {
+  $('q').value = '';
+  $('dlist').innerHTML = P.groups.map((g, n) => {
+    const single = g.ks.length === 1 && !P.cols[g.ks[0]].o;
+    if (single) return '<div class="dg" data-g="' + n + '"><div class="dgh"><input type="checkbox" data-k="' + g.ks[0] + '" aria-label="' + esc(g.g) + '"><span class="dgn" style="cursor:default"><span class="car"></span><span class="nm">' + esc(g.g) + '</span></span></div></div>';
+    return '<div class="dg" data-g="' + n + '"><div class="dgh"><input type="checkbox" data-grp="' + n + '" aria-label="All of ' + esc(g.g) + '"><button type="button" class="dgn" data-exp="' + n + '"><span class="car">&#9656;</span><span class="nm">' + esc(g.g) + '</span></button><span class="cnt"></span></div>' +
+      '<div class="dgo" hidden>' + g.ks.map(k => '<label><input type="checkbox" data-k="' + k + '"><span>' + esc(up(P.cols[k].o || P.cols[k].g)) + '</span></label>').join('') + '</div></div>';
+  }).join('');
+}
+function syncDrawer() {
+  document.querySelectorAll('#dlist input[data-k]').forEach(i => { i.checked = S.checked.has(+i.dataset.k); });
+  document.querySelectorAll('#dlist .dg').forEach(el => {
+    const n = +el.dataset.g, g = P.groups[n];
+    const on = g.ks.filter(k => S.checked.has(k)).length;
+    const gc = el.querySelector('input[data-grp]');
+    if (gc) { gc.checked = on === g.ks.length; gc.indeterminate = on > 0 && on < g.ks.length; el.querySelector('.cnt').textContent = on + ' of ' + g.ks.length; }
+    const q = S.q, gm = !q || g.g.toLowerCase().includes(q);
+    let any = gm;
+    const box = el.querySelector('.dgo');
+    if (box) {
+      box.querySelectorAll('label').forEach(l => { const m = gm || l.textContent.toLowerCase().includes(q); l.hidden = !m; if (m) any = true; });
+      const open = S.egrp.has(n) || (q && any);
+      box.hidden = !open;
+      el.querySelector('.car').innerHTML = open ? '&#9662;' : '&#9656;';
+    } else if (q) any = g.g.toLowerCase().includes(q);
+    el.hidden = !any;
+  });
+  $('dcount').textContent = S.checked.size + ' of ' + P.cols.length + ' indicators shown';
+}
+
+/* ---------- numbers ---------- */
+const isR = k => P.cols[k].p === 'r';
+const title = k => P.cols[k].o ? P.cols[k].g + ' \u00b7 ' + up(P.cols[k].o) : P.cols[k].g;
+const pctOn = k => P.cols[k].k === 'b' && S.mode === 'pct';
+function selected() {
+  const out = [];
+  F.forEach((f, i) => { if ((S.state === 'All' || (f.state || 'Kaduna') === S.state) && (S.area === 'All' || f.area === S.area) && (S.type === 'All' || f.type === S.type) && !S.lgaOff.has(f.lga) && !S.wOff.has(f.lga + '|' + f.ward)) out.push(i); });
+  return out;
+}
+function cell(facs, wi, k) {
+  const c = P.cols[k], bin = c.k === 'b';
+  let s = 0, rep = 0, ans = 0;
+  if (c.p === 'r') {
+    for (const i of facs) { const r = r1Map.get(i); if (!r) continue; rep++; const v = r[1 + k]; if (v == null) continue; ans++; if (bin) { if (v === 1) s++; } else s += v; }
+  } else {
+    for (const i of facs) { const r = byKey.get(i * 64 + wi); if (!r) continue; rep++; const v = r[2 + k]; if (bin) { if (v === 1) { s++; ans++; } else if (v === 0) ans++; } else if (typeof v === 'number') { s += v; ans++; } }
+  }
+  return { s, rep, ans, n: facs.length };
+}
+function why(c, k, wi) {
+  if (wi < 0) return c.rep ? 'NR' : 'NV1';
+  if (!c.rep) return wkRows[wi] ? 'NV' : 'NQ';
+  return ansCW[wi][k] ? 'NR' : 'NQ';
+}
+function show(c, k) {
+  if (pctOn(k)) return Math.round(100 * c.s / c.n) + '%';
+  return Number.isInteger(c.s) ? String(c.s) : (Math.round(c.s * 10) / 10).toString();
+}
+function plain(c, k, wi) {
+  if (!c.ans) return '';
+  if (pctOn(k)) return Math.round(1000 * c.s / c.n) / 10;
+  return Math.round(c.s * 10) / 10;
+}
+const tyRank = f => f.type === 'PHC' ? 0 : 1;
+const lgaRank = l => { const n = LGAS.indexOf(l); return n < 0 ? 99 : n; };
+const cmpFac = (a, b) => lgaRank(F[a].lga) - lgaRank(F[b].lga) || tyRank(F[a]) - tyRank(F[b]) || String(F[a].ward).localeCompare(String(F[b].ward)) || F[a].name.localeCompare(F[b].name);
+function buildRows(ids) {
+  const rows = [{ id: 'total', label: 'Total', lvl: 1, facs: ids, cls: 'total' }];
+  const add = (id, label, facs, lvl, tog, open) => { if (facs.length) rows.push({ id, label, lvl, facs, tog, open }); };
+  rows.push({ sect: 'Facility residence' });
+  ['Urban', 'Rural'].forEach(a => add('a:' + a, a, ids.filter(i => F[i].area === a), 1));
+  rows.push({ sect: 'Facility type' });
+  [['PHC', 'Primary Health Centres'], ['HC', 'Health Clinics']].forEach(([t, n]) => add('t:' + t, n, ids.filter(i => F[i].type === t), 1));
+  rows.push({ sect: 'Local Government Area' });
+  LGAS.filter(l => !S.lgaOff.has(l)).forEach(l => {
+    let fl = ids.filter(i => F[i].lga === l);
+    if (S.find) fl = fl.filter(i => (F[i].name + ' ' + F[i].ward).toLowerCase().includes(S.find));
+    if (!fl.length) return;
+    const lid = 'l:' + l, lo = S.find ? true : S.open.has(lid);
+    add(lid, l, fl, 1, S.find ? null : lid, lo);
+    if (!lo) return;
+    if (S.detail === 4) {
+      [['PHC', 'Primary Health Centres'], ['HC', 'Health Clinics']].forEach(([ty, nm]) => {
+        const tf = fl.filter(i => F[i].type === ty).sort(cmpFac); if (!tf.length) return;
+        const tid = 'lt:' + l + '|' + ty, to = S.find ? true : S.open.has(tid);
+        rows.push({ id: tid, label: nm, lvl: 2, facs: tf, tog: S.find ? null : tid, open: to, cls: 'subtot' });
+        if (to) tf.forEach(i => rows.push({ id: 'f:' + F[i].id, label: F[i].name, lvl: 3, facs: [i] }));
+      });
+      return;
+    }
+    if (S.detail === 2) { fl.slice().sort(cmpFac).forEach(i => rows.push({ id: 'f:' + F[i].id, label: F[i].name, lvl: 2, facs: [i], ty: F[i].type })); return; }
+    [...new Set(fl.map(i => F[i].ward))].forEach(w => {
+      const wf = fl.filter(i => F[i].ward === w), wid = 'w:' + l + '|' + w, wo = S.find ? true : S.open.has(wid);
+      add(wid, w || 'No ward', wf, 2, S.find ? null : wid, wo);
+      if (wo) wf.slice().sort(cmpFac).forEach(i => rows.push({ id: 'f:' + F[i].id, label: F[i].name, lvl: 3, facs: [i], ty: F[i].type }));
+    });
+  });
+  return rows;
+}
+const weekIdx = () => { const a = []; if (P.weeks.length) for (let i = S.w0; i <= S.w1; i++) a.push(i); return a; };
+const subs = (k, weeks) => isR(k) ? [-1] : weeks;
+const subLabel = wi => wi < 0 ? 'R1' : P.weeks[wi];
+
+/* ---------- render ---------- */
+function render() {
+  const ids = selected(), weeks = weekIdx();
+  const vis = [...S.checked].sort((a, b) => a - b);
+  updMs();
+  $('mCount').setAttribute('aria-pressed', S.mode === 'count');
+  $('mPct').setAttribute('aria-pressed', S.mode === 'pct');
+  $('dLga').setAttribute('aria-pressed', S.detail === 0); $('dWard').setAttribute('aria-pressed', S.detail === 1); $('dFac').setAttribute('aria-pressed', S.detail === 2); $('dAll').setAttribute('aria-pressed', S.detail === 3); $('dTy').setAttribute('aria-pressed', S.detail === 4);
+  $('modeBox').hidden = !vis.some(k => P.cols[k].k === 'b');
+  $('indN').textContent = S.checked.size + ' of ' + P.cols.length;
+  const jg = []; vis.forEach(k => { const n = P.gidx.get(P.cols[k].g); if (!jg.includes(n)) jg.push(n); });
+  $('jump').innerHTML = '<option value="">Jump to group</option>' + jg.map(n => '<option value="' + n + '">' + esc(P.groups[n].g) + '</option>').join('');
+  syncDrawer();
+
+  const g = $('grid'), keepL = g.scrollLeft, keepT = g.scrollTop;
+  if (!vis.length) { g.innerHTML = '<div class="empty">No indicators selected. Open Indicators and tick some, or press Select all.</div>'; $('stats').textContent = ''; return; }
+
+  /* header */
+  let h1 = '', h2 = '', h3 = '', i = 0;
+  const vpos = new Map(vis.map((k, n) => [k, n]));
+  const lastG = k => { const n = vpos.get(k) + 1; return n >= vis.length || P.cols[vis[n]].g !== P.cols[k].g; };
+  const bandOf = k => vpos.get(k) % 2 ? ' bd' : '';
+  const edge = (k, last) => (last ? ' ie' + (lastG(k) ? ' ge' : '') : '') + bandOf(k);
+  while (i < vis.length) {
+    const gname = P.cols[vis[i]].g; let j = i, span = 0;
+    while (j < vis.length && P.cols[vis[j]].g === gname) { span += subs(vis[j], weeks).length; j++; }
+    const n = P.gidx.get(gname), seg = vis.slice(i, j);
+    if (seg.length === 1 && !P.cols[seg[0]].o) {
+      const k = seg[0], ns = subs(k, weeks).length;
+      h1 += '<th class="rs gh ge" rowspan="2" colspan="' + ns + '" data-grp="' + n + '">' + esc(gname) + '<button class="x" type="button" data-hide="' + k + '" title="Hide this indicator" aria-label="Hide ' + esc(gname) + '">&times;</button></th>';
+    } else {
+      h1 += '<th class="gh ge" colspan="' + span + '" data-grp="' + n + '">' + esc(gname) + '<button class="x" type="button" data-hidegrp="' + n + '" title="Hide this group" aria-label="Hide group ' + esc(gname) + '">&times;</button></th>';
+      seg.forEach(k => { h2 += '<th class="' + edge(k, true).trim() + '" colspan="' + subs(k, weeks).length + '">' + esc(up(P.cols[k].o || P.cols[k].g)) + '<button class="x" type="button" data-hide="' + k + '" title="Hide this indicator" aria-label="Hide indicator">&times;</button></th>'; });
+    }
+    seg.forEach(k => { const ss = subs(k, weeks); ss.forEach((wi, q) => { h3 += '<th class="' + edge(k, q === ss.length - 1).trim() + '">' + subLabel(wi) + '</th>'; }); });
+    i = j;
+  }
+  const hasR1 = vis.some(isR);
+  let html = '<table><thead><tr class="r1"><th class="c1" rowspan="3">Row</th><th class="c2" rowspan="3">Facilities</th>' + h1 + '</tr><tr class="r2">' + h2 + '</tr><tr class="r3">' + h3 + '</tr></thead><tbody>';
+
+  /* body */
+  const rows = buildRows(ids);
+  const ncols = vis.reduce((a, k) => a + subs(k, weeks).length, 0) + 2;
+  for (const r of rows) {
+    if (r.sect) { html += '<tr class="sect"><td class="c1">' + r.sect + '</td><td class="c2"></td><td colspan="' + (ncols - 2) + '" style="text-align:left"></td></tr>'; continue; }
+    const tg = r.tog ? '<button class="tog" type="button" data-tog="' + esc(r.tog) + '" aria-expanded="' + !!r.open + '" aria-label="' + (r.open ? 'Collapse ' : 'Expand ') + esc(r.label) + '">' + (r.open ? '&#8722;' : '+') + '</button>' : '<span class="sp"></span>';
+    html += '<tr class="data l' + r.lvl + (r.cls ? ' ' + r.cls : '') + '"><td class="c1"><span class="lab">' + tg + '<span>' + esc(r.label) + '</span>' + (r.ty ? '<span class="ty">' + r.ty + '</span>' : '') + '</span></td><td class="c2">' + r.facs.length + '</td>';
+    for (const k of vis) {
+      const pct = pctOn(k);
+      const ssub = subs(k, weeks);
+      for (let q = 0; q < ssub.length; q++) {
+        const wi = ssub[q], ec = edge(k, q === ssub.length - 1), c = cell(r.facs, wi, k);
+        if (!c.ans) { html += '<td class="wk' + ec + '"></td>'; continue; }
+        const heat = pct && !r.cls ? ' style="background:color-mix(in srgb, var(--accent) ' + Math.round(c.s / c.n * 38) + '%, transparent)"' : '';
+        html += '<td class="wk' + ec + '"' + heat + '>' + show(c, k) + '</td>';
+      }
+    }
+    html += '</tr>';
+  }
+  g.innerHTML = html + '</tbody></table>';
+  g.scrollLeft = keepL; g.scrollTop = keepT;
+
+  let raw = 0; ids.forEach(f => weeks.forEach(w => { if (byKey.has(f * 64 + w)) raw++; }));
+  $('stats').textContent = ids.length + ' of ' + F.length + ' facilities \u00b7 ' + (weeks.length ? P.weeks[S.w0] + ' to ' + P.weeks[S.w1] : 'Round 1') + (hasR1 ? ' \u00b7 R1 = Round 1' : '');
+}
+
+/* ---------- downloads ---------- */
+function toast(m) {
+  const t = $('toast'); t.textContent = m; t.hidden = false;
+  clearTimeout(toast.t); toast.t = setTimeout(() => { t.hidden = true; }, 3400);
+}
+const csv = aoa => aoa.map(r => r.map(v => { v = v == null ? '' : String(v); return /[",\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; }).join(',')).join('\r\n');
+
+const TYN = { PHC: 'PHC', HC: 'HC' };
+/* the four label columns of a table row: LGA, Ward, Facility type, Facility */
+function rowLabels(r) {
+  if (/^f:/.test(r.id)) { const f = F[r.facs[0]]; return [f.lga, f.ward || '', TYN[f.type] || f.type, f.name]; }
+  if (/^lt:/.test(r.id)) { const f = F[r.facs[0]]; return [f.lga, '', TYN[f.type] || f.type, 'Total ' + (f.type === 'PHC' ? 'PHCs' : 'HCs')]; }
+  if (/^w:/.test(r.id)) { const f = F[r.facs[0]]; return [f.lga, r.label, '', '']; }
+  return [r.label, '', '', ''];
+}
+function gridAoa(withSect) {
+  const ids = selected(), weeks = weekIdx(), vis = [...S.checked].sort((a, b) => a - b), rows = buildRows(ids);
+  const a1 = ['', '', '', '', ''], a2 = ['', '', '', '', ''], a3 = ['LGA', 'Ward', 'Facility type', 'Facility', 'Facilities'];
+  let lastG = null;
+  vis.forEach(k => {
+    const sb = subs(k, weeks), c = P.cols[k];
+    sb.forEach((wi, n) => {
+      a1.push(n === 0 && c.g !== lastG ? c.g : ''); a2.push(n === 0 ? up(c.o || '') : ''); a3.push(subLabel(wi));
+    });
+    lastG = c.g;
+  });
+  const out = [a1, a2, a3];
+  for (const r of rows) {
+    if (r.sect) { if (withSect) out.push([r.sect.toUpperCase()]); continue; }
+    const line = [...rowLabels(r), r.facs.length];
+    vis.forEach(k => subs(k, weeks).forEach(wi => line.push(plain(cell(r.facs, wi, k), k, wi))));
+    out.push(line);
+  }
+  return out;
+}
+function rawAoa() {
+  const ids = selected().sort(cmpFac), ks = [...S.checked].sort((a, b) => a - b);
+  const head = ['LGA', 'Ward', 'Facility type', 'Facility', 'Facility ID', 'Facility residence', 'Week', ...ks.map(k => title(k) + (isR(k) ? ' (Round 1)' : ''))];
+  const body = [];
+  const wk = ks.some(k => !isR(k));
+  if (wk) {
+    for (const i of ids) for (let w = S.w0; w <= S.w1; w++) {
+      const r = byKey.get(i * 64 + w); if (!r) continue;
+      const f = F[i], rr = r1Map.get(i);
+      body.push([f.lga, f.ward, TYN[f.type] || f.type, f.name, f.id, f.area, P.weeks[w], ...ks.map(k => isR(k) ? (rr ? rr[1 + k] : null) : r[2 + k])]);
+    }
+  } else {
+    for (const i of ids) { const rr = r1Map.get(i); if (!rr) continue; const f = F[i]; body.push([f.lga, f.ward, TYN[f.type] || f.type, f.name, f.id, f.area, 'R1', ...ks.map(k => rr[1 + k])]); }
+  }
+  return [head, ...body];
+}
+
+async function deliver(fname, data, csvText) {
+  if (!dl && API) {
+    try {
+      const b = new Blob([data], { type: /\.csv$/.test(fname) ? 'text/csv;charset=utf-8' : 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = fname; document.body.appendChild(a); a.click();
+      setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1500); toast('Saved ' + fname);
+    } catch (e) { toast('Could not save the file.'); }
+    return;
+  }
+  if (!dl) {
+    try { await navigator.clipboard.writeText(csvText); toast('Downloads are off in this view. CSV copied to the clipboard.'); }
+    catch (e) { toast('Downloads are not available in this view.'); }
+    return;
+  }
+  try { await dl.save({ filename: fname, data }); toast('Saved ' + fname); }
+  catch (e) { toast(e && e.code === 'declined' ? 'Download cancelled.' : 'Could not save the file.'); }
+}
+async function save(name, aoa) {
+  if (aoa.length < 2) { toast('Nothing to download. Tick at least one indicator.'); return; }
+  const text = csv(aoa);
+  await deliver(name + '.csv', text, text);
+}
+
+/* ---------- styled Excel files ---------- */
+const XC = { h1: 'FF0B3F3A', h2: 'FF0F6B63', h3: 'FFCFE3DF', tot: 'FFDCEBE7', sect: 'FFEAF0EE', lga: 'FFF3F7F6', band: 'FFF1F3F3', line: 'FFD9E1DF', ind: 'FF5E9E97', grp: 'FF0B3F3A', nv: 'FFEDEFEE', nq: 'FFE0E5E4', mute: 'FF6B7A77', ink: 'FF16211F', white: 'FFFFFFFF' };
+const xfill = c => ({ type: 'pattern', pattern: 'solid', fgColor: { argb: c } });
+const xb = (c, s) => ({ style: s || 'thin', color: { argb: c } });
+const DETAIL_NAMES = ['LGAs only', 'LGAs and wards', 'LGAs and facilities', 'LGAs, wards and facilities'];
+function filterSummary() {
+  const nl = LGAS.length - LGAS.filter(l => S.lgaOff.has(l)).length;
+  const wardsAll = F.filter(f => !S.lgaOff.has(f.lga)).every(f => !S.wOff.has(f.lga + '|' + f.ward));
+  return [
+    ['Weeks', P.weeks.length ? P.weeks[S.w0] + ' to ' + P.weeks[S.w1] : 'Round 1'],
+    ['State', S.state === 'All' ? 'All' : S.state], ['Facility residence', S.area], ['Facility type', S.type === 'All' ? 'All' : (S.type === 'PHC' ? 'Primary Health Centre' : 'Health Clinic')],
+    ['LGAs', nl === LGAS.length ? 'All (' + nl + ')' : LGAS.filter(l => !S.lgaOff.has(l)).join(', ')],
+    ['Wards', wardsAll ? 'All' : 'Selection applied'],
+    ['Facilities in view', selected().length + ' of ' + F.length],
+    ['Show', S.mode === 'pct' ? 'Percent of facilities' : 'Count'],
+    ['Rows', S.find ? 'Search: ' + S.find : DETAIL_NAMES[S.detail == null ? 3 : S.detail]]
+  ];
+}
+function xwb(title) {
+  const wb = new ExcelJS.Workbook();
+  wb.creator = 'Mubarak Adedeji'; wb.lastModifiedBy = 'Mubarak Adedeji'; wb.company = 'NFTI'; wb.title = title; wb.created = new Date(); wb.modified = new Date();
+  return wb;
+}
+function notesSheet(wb, what) {
+  const ws = wb.addWorksheet('Notes', { views: [{ showGridLines: false }], properties: { tabColor: { argb: XC.mute } } });
+  ws.getColumn(1).width = 24; ws.getColumn(2).width = 96;
+  const row = (a, b, bold) => { const r = ws.addRow([a, b]); r.getCell(1).font = { bold: true, color: { argb: XC.mute }, size: 10 }; r.getCell(2).font = { bold: !!bold, color: { argb: XC.ink }, size: 10 }; r.getCell(2).alignment = { wrapText: true, vertical: 'top' }; r.getCell(1).alignment = { vertical: 'top' }; return r; };
+  const t = ws.addRow(['LS 2.0 Analysis Tables']); t.getCell(1).font = { bold: true, size: 16, color: { argb: XC.h1 } }; t.height = 26;
+  ws.addRow([]);
+  const man = MAN.pages.find(p => p.id === S.id) || {};
+  row('Page', P.title); row('Contents', what); row('Analysis sheet', man.sheet || ''); row('Staging tab', man.source || '');
+  row('Downloaded', new Date().toLocaleString());
+  ws.addRow([]);
+  filterSummary().forEach(([a, b]) => row(a, b));
+  ws.addRow([]);
+  row('Empty cells', 'Left empty. No answer was recorded.');
+  ws.addRow([]);
+  row('How to read', 'A cell counts the facilities that answered Yes in that week, or adds up a number such as stock. In percent mode a cell divides by all facilities in the row.');
+  return ws;
+}
+async function gridXlsx() {
+  const ids = selected(), weeks = weekIdx(), vis = [...S.checked].sort((a, b) => a - b), rows = buildRows(ids);
+  const wb = xwb(P.title);
+  const ws = wb.addWorksheet('Table', { views: [{ state: 'frozen', xSplit: 5, ySplit: 6, showGridLines: false, zoomScale: 90 }], properties: { tabColor: { argb: XC.h2 } }, pageSetup: { orientation: 'landscape', paperSize: 9, printTitlesRow: '4:6', printTitlesColumn: 'A:E' } });
+  const vpos = new Map(vis.map((k, n) => [k, n]));
+  const lastG = k => { const n = vpos.get(k) + 1; return n >= vis.length || P.cols[vis[n]].g !== P.cols[k].g; };
+  const cols = [];
+  vis.forEach(k => { const ss = subs(k, weeks); ss.forEach((wi, q) => cols.push({ k, wi, last: q === ss.length - 1, lastG: q === ss.length - 1 && lastG(k), band: vpos.get(k) % 2 === 1 })); });
+  const C0 = 6, nC = C0 + cols.length - 1;
+  [22, 20, 14, 34, 11].forEach((w, n) => { ws.getColumn(n + 1).width = w; });
+  for (let c = C0; c <= nC; c++) ws.getColumn(c).width = 7.5;
+  const rb = (c, base) => { const x = cols[c - C0]; return x && x.lastG ? Object.assign({}, base, { right: xb(XC.grp, 'medium') }) : x && x.last ? Object.assign({}, base, { right: xb(XC.ind, 'medium') }) : base; };
+  /* logo and title */
+  ws.getRow(1).height = 40; ws.getRow(2).height = 18; ws.getRow(3).height = 6;
+  const tc = ws.getCell(1, 1); tc.value = P.title; tc.font = { bold: true, size: 16, color: { argb: XC.h1 } }; tc.alignment = { vertical: 'middle' };
+  ws.getCell(2, 1).value = filterSummary().filter(x => ['Weeks', 'Facility residence', 'Facility type', 'Facilities in view'].includes(x[0]) && x[1] !== 'All').map(x => x[0] + ': ' + x[1]).join('   |   ');
+  ws.getCell(2, 1).font = { size: 9, color: { argb: XC.mute } };
+  /* header rows 4 to 6 */
+  const hb = { top: xb('FFFFFFFF'), bottom: xb('FFFFFFFF'), left: xb('FFFFFFFF'), right: xb('FFFFFFFF') };
+  [4, 5, 6].forEach(r => ws.getRow(r).height = r === 6 ? 20 : 24);
+  const corner = (r, txt, c) => { const x = ws.getCell(r, c); if (txt) x.value = txt; x.fill = xfill(XC.h1); x.font = { bold: true, color: { argb: XC.white }, size: 10 }; x.alignment = { vertical: 'bottom', horizontal: c === 5 ? 'right' : 'left', indent: c === 1 ? 1 : 0 }; x.border = c === 5 ? Object.assign({}, hb, { right: xb(XC.grp, 'medium') }) : hb; };
+  const LBL = ['LGA', 'Ward', 'Facility type', 'Facility', 'Facilities'];
+  [4, 5, 6].forEach(r => LBL.forEach((l, n) => corner(r, r === 6 ? l : '', n + 1)));
+  let ci = C0;
+  const hcell = (r, c, txt, bg, fg, bold) => { const x = ws.getCell(r, c); if (txt) x.value = txt; x.fill = xfill(bg); x.font = { bold, color: { argb: fg }, size: 10 }; x.alignment = { horizontal: 'centerContinuous', vertical: 'middle' }; x.border = rb(c, hb); };
+  let i = 0;
+  while (i < vis.length) {
+    const gname = P.cols[vis[i]].g; let j = i, span = 0;
+    while (j < vis.length && P.cols[vis[j]].g === gname) { span += subs(vis[j], weeks).length; j++; }
+    const seg = vis.slice(i, j), single = seg.length === 1 && !P.cols[seg[0]].o;
+    for (let q = 0; q < span; q++) { hcell(4, ci + q, q === 0 ? gname : '', XC.h1, XC.white, true); if (single) hcell(5, ci + q, '', XC.h1, XC.white, true); }
+    let cc = ci;
+    seg.forEach(k => {
+      const ns = subs(k, weeks).length;
+      if (!single) for (let q = 0; q < ns; q++) hcell(5, cc + q, q === 0 ? up(P.cols[k].o || P.cols[k].g) : '', XC.h2, XC.white, true);
+      subs(k, weeks).forEach((wi, q) => { const x = ws.getCell(6, cc + q); x.value = subLabel(wi); x.fill = xfill(XC.h3); x.font = { bold: true, color: { argb: XC.ink }, size: 9 }; x.alignment = { horizontal: 'center', vertical: 'middle' }; x.border = rb(cc + q, { top: xb('FFFFFFFF'), bottom: xb(XC.ind), left: xb('FFFFFFFF'), right: xb('FFFFFFFF') }); });
+      cc += ns;
+    });
+    ci = cc; i = j;
+  }
+  /* body */
+  let r = 7;
+  for (const row of rows) {
+    if (row.sect) {
+      for (let c = 1; c <= nC; c++) { const x = ws.getCell(r, c); x.fill = xfill(XC.sect); x.border = { bottom: xb(XC.line) }; }
+      const x = ws.getCell(r, 1); x.value = row.sect.toUpperCase(); x.font = { bold: true, size: 9, color: { argb: XC.mute } }; x.alignment = { indent: 1 };
+      ws.getRow(r).height = 17; r++; continue;
+    }
+    const isTot = row.cls === 'total', isSub = /^lt:/.test(row.id), isLga = /^l:/.test(row.id) || isSub, isWard = /^w:/.test(row.id);
+    const base = { top: xb(XC.line), bottom: xb(XC.line), left: xb(XC.line), right: xb(XC.line) };
+    const rowFill = isTot ? XC.tot : isLga ? XC.lga : null;
+    const labs = rowLabels(row), isFac = /^f:/.test(row.id);
+    labs.forEach((v, n) => {
+      const x = ws.getCell(r, n + 1); if (v !== '') x.value = v;
+      x.alignment = { vertical: 'middle', indent: n === 0 ? 1 : 0 };
+      const mute = isFac && n < 2;
+      x.font = { bold: (isTot || isLga) && (n === 0 || isSub), size: isTot && n === 0 ? 11 : 10, color: { argb: mute ? XC.mute : XC.ink } };
+      x.border = base; if (rowFill) x.fill = xfill(rowFill);
+    });
+    const bb = ws.getCell(r, 5); bb.value = row.facs.length; bb.alignment = { horizontal: 'center', vertical: 'middle' }; bb.font = { bold: isTot || isLga, size: 10 }; bb.numFmt = '#,##0';
+    bb.border = Object.assign({}, base, { right: xb(XC.grp, 'medium') });
+    if (rowFill) bb.fill = xfill(rowFill);
+    cols.forEach((x, n) => {
+      const c = C0 + n, cl = row.facs, cellv = cell(cl, x.wi, x.k), xc = ws.getCell(r, c);
+      xc.border = rb(c, base);
+      if (!cellv.ans) {
+        if (rowFill) xc.fill = xfill(rowFill); else if (x.band) xc.fill = xfill(XC.band);
+      } else {
+        const v = plain(cellv, x.k, x.wi); xc.value = v;
+        xc.alignment = { horizontal: 'center', vertical: 'middle' };
+        xc.font = { bold: isTot || isLga, size: 10 };
+        xc.numFmt = pctOn(x.k) ? '0.0"%"' : (Number.isInteger(v) ? '#,##0' : '#,##0.0');
+        if (rowFill) xc.fill = xfill(rowFill); else if (x.band) xc.fill = xfill(XC.band);
+      }
+    });
+    ws.getRow(r).height = isTot ? 21 : 18;
+    r++;
+  }
+  notesSheet(wb, 'The table as shown on screen, with your filters, indicators and row detail.');
+  return new Uint8Array(await wb.xlsx.writeBuffer());
+}
+async function rawXlsx() {
+  const aoa = rawAoa();
+  const wb = xwb(P.title + ' raw rows');
+  const ws = wb.addWorksheet('Raw rows', { views: [{ state: 'frozen', xSplit: 1, ySplit: 1, zoomScale: 90 }], properties: { tabColor: { argb: XC.h2 } } });
+  const head = aoa[0];
+  ws.addRow(head);
+  for (let n = 1; n < aoa.length; n++) ws.addRow(aoa[n].map(v => v == null ? null : v));
+  ws.getRow(1).height = 44;
+  head.forEach((h, n) => {
+    const c = ws.getCell(1, n + 1); c.fill = xfill(XC.h1); c.font = { bold: true, color: { argb: XC.white }, size: 10 };
+    c.alignment = { wrapText: true, vertical: 'bottom', horizontal: n < 7 ? 'left' : 'center' }; c.border = { right: xb('FFFFFFFF') };
+    ws.getColumn(n + 1).width = [16, 20, 10, 34, 26, 8, 9][n] || 14;
+  });
+  for (let n = 2; n <= aoa.length; n++) {
+    const row = ws.getRow(n);
+    for (let c = 1; c <= head.length; c++) {
+      const x = row.getCell(c); x.font = { size: 10, color: { argb: c <= 7 ? XC.ink : XC.ink } };
+      if (c > 7) x.alignment = { horizontal: 'center' };
+      x.border = { bottom: xb(XC.line) };
+      if (n % 2 === 1) x.fill = xfill(XC.band);
+    }
+  }
+  ws.autoFilter = { from: { row: 1, column: 1 }, to: { row: 1, column: head.length } };
+  notesSheet(wb, 'One row per facility and week, with the indicators you ticked. Empty means no answer was recorded.');
+  return new Uint8Array(await wb.xlsx.writeBuffer());
+}
+async function saveXlsx(kind) {
+  const aoa = kind === 'grid' ? gridAoa(true) : rawAoa();
+  if (aoa.length < 2) { toast('Nothing to download. Tick at least one indicator.'); return; }
+  const name = 'LS2_' + S.id + (kind === 'grid' ? '_table' : '_raw_rows');
+  if (typeof ExcelJS === 'undefined') { toast('The Excel builder did not load. Use CSV, or reload the page.'); return; }
+  let data;
+  try { data = kind === 'grid' ? await gridXlsx() : await rawXlsx(); }
+  catch (e) { toast('Could not build the Excel file.'); return; }
+  await deliver(name + '.xlsx', data, csv(aoa));
+}
+</script>
