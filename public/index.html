@@ -380,14 +380,21 @@ const S = {
 };
 
 /* Hosted version: window.LS_API = '/api' is set by the host page. Without it the page reads data/*.json. */
-const API = window.LS_API || null;
+let API = window.LS_API || null;
 async function loadPage(id) {
-  if (!API) return getJSON('data/' + id + '.json');
-  // one small request per LGA, joined here, so no single reply gets large
-  const parts = await Promise.all(LGAS.map(l => getJSON(API + '/page?id=' + encodeURIComponent(id) + '&lga=' + encodeURIComponent(l))));
-  const out = Object.assign({}, parts[0], { rows: [], r1: [] });
-  parts.forEach(x => { out.rows = out.rows.concat(x.rows); out.r1 = out.r1.concat(x.r1 || []); });
-  return out;
+  if (API) {
+    try {
+      // one small request per LGA, joined here, so no single reply gets large
+      const parts = await Promise.all(LGAS.map(l => getJSON(API + '/page?id=' + encodeURIComponent(id) + '&lga=' + encodeURIComponent(l))));
+      const out = Object.assign({}, parts[0], { rows: [], r1: [] });
+      parts.forEach(x => { out.rows = out.rows.concat(x.rows); out.r1 = out.r1.concat(x.r1 || []); });
+      return out;
+    } catch (e) {
+      console.warn('API page load failed, falling back to static data:', e);
+      API = null;
+    }
+  }
+  return getJSON('data/' + id + '.json');
 }
 async function getJSON(path) {
   if (cache[path]) return cache[path];
@@ -505,7 +512,18 @@ async function initAI() {
 (async function boot() {
   initAI();
   try {
-    const [fac, man] = await Promise.all([getJSON(API ? API + '/facilities' : 'data/facilities.json'), getJSON(API ? API + '/manifest' : 'data/pages.json')]);
+    let fac, man;
+    if (API) {
+      try {
+        [fac, man] = await Promise.all([getJSON(API + '/facilities'), getJSON(API + '/manifest')]);
+      } catch (err) {
+        console.warn('API unavailable or database not configured, falling back to static data:', err);
+        API = null;
+        [fac, man] = await Promise.all([getJSON('data/facilities.json'), getJSON('data/pages.json')]);
+      }
+    } else {
+      [fac, man] = await Promise.all([getJSON('data/facilities.json'), getJSON('data/pages.json')]);
+    }
     F = fac; MAN = man;
     LGAS = [...new Set(F.map(f => f.lga))];
     $('sub').textContent = 'Longitudinal Study 2.0 \u00b7 ' + F.length + ' facilities in ' + LGAS.length + ' LGAs';
