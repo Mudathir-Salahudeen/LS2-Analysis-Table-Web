@@ -602,7 +602,7 @@ function buildShell() {
   const wo = P.weeks.map((w, i) => '<option value="' + i + '">' + w + '</option>').join('');
   $('app').innerHTML =
   '<div style="display:flex;flex-direction:column;gap:14px">' +
-    '<details class="toolsd" id="toolsd"><summary>' + ic('sliders') + 'Table tools<span class="th">Columns, row detail, download</span>' + ic('chev') + '</summary><section class="panel tools" aria-label="Table tools">' +
+    '<details class="toolsd" id="toolsd" open><summary>' + ic('sliders') + 'Table tools<span class="th">Columns, row detail, download</span>' + ic('chev') + '</summary><section class="panel tools" aria-label="Table tools">' +
       '<div class="lbl">Columns<div class="trow"><button class="btn primary" type="button" id="openInd">' + ic('sliders') + 'Indicators:&nbsp;<span id="indN"></span></button><select id="jump" aria-label="Jump to indicator group"></select></div></div>' +
       '<div class="lbl dl">Export<details class="menu" id="dlmenu"><summary class="btn primary">' + ic('download') + 'Download</summary><div class="pop">' +
         '<button type="button" id="dlGrid">Table as Excel</button><button type="button" id="dlGridCsv">Table as CSV</button>' +
@@ -971,21 +971,18 @@ function rawAoa() {
 }
 
 async function deliver(fname, data, csvText) {
-  if (!dl && API) {
-    try {
-      const b = new Blob([data], { type: /\.csv$/.test(fname) ? 'text/csv;charset=utf-8' : 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-      const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = fname; document.body.appendChild(a); a.click();
-      setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1500); toast('Saved ' + fname);
-    } catch (e) { toast('Could not save the file.'); }
-    return;
+  if (dl) {
+    try { await dl.save({ filename: fname, data }); toast('Saved ' + fname); return; }
+    catch (e) { toast(e && e.code === 'declined' ? 'Download cancelled.' : 'Could not save the file.'); return; }
   }
-  if (!dl) {
-    try { await navigator.clipboard.writeText(csvText); toast('Downloads are off in this view. CSV copied to the clipboard.'); }
-    catch (e) { toast('Downloads are not available in this view.'); }
-    return;
+  try {
+    const b = new Blob([data], { type: /\.csv$/.test(fname) ? 'text/csv;charset=utf-8' : 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = fname; document.body.appendChild(a); a.click();
+    setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1500); toast('Saved ' + fname);
+  } catch (e) {
+    try { await navigator.clipboard.writeText(csvText); toast('Downloads blocked by browser. CSV copied to clipboard.'); }
+    catch (err) { toast('Could not save the file.'); }
   }
-  try { await dl.save({ filename: fname, data }); toast('Saved ' + fname); }
-  catch (e) { toast(e && e.code === 'declined' ? 'Download cancelled.' : 'Could not save the file.'); }
 }
 async function save(name, aoa) {
   if (aoa.length < 2) { toast('Nothing to download. Tick at least one indicator.'); return; }
